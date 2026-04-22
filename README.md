@@ -57,7 +57,7 @@ http://127.0.0.1:8000/docs
 ## API Documentation
 This project uses FastAPI, which automatically generates interactive API documentation at:
 
-/docs
+- /docs
 
 The /docs endpoint shows the available endpoints, request body format, response format, and allows live testing of the API.
 
