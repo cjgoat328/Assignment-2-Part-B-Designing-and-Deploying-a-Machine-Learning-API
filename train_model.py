@@ -20,12 +20,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
+# File paths for dataset and saved outputs
 DATA_PATH = Path("data/company_bankruptcy_prediction.csv")
 ARTIFACTS_DIR = Path("artifacts")
 MODEL_PATH = ARTIFACTS_DIR / "model.joblib"
 METRICS_PATH = ARTIFACTS_DIR / "metrics.json"
 FEATURES_PATH = ARTIFACTS_DIR / "selected_features.json"
 
+# Define target column and selected input features
 TARGET_COLUMN = "Bankrupt?"
 SELECTED_FEATURES = [
     "ROA(C) before interest and depreciation before interest",
@@ -34,8 +36,7 @@ SELECTED_FEATURES = [
     "Debt ratio %",
     "Net worth/Assets",
 ]
-
-
+ 
 def load_data(path: Path) -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(
@@ -90,13 +91,20 @@ def evaluate(model: Pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict:
 
 
 def main() -> None:
+    # Step 1: Load the dataset
     print("Loading data...")
     df = load_data(DATA_PATH)
+    # Step 2: Check that the target and selected features exist
     validate_columns(df)
 
+    # Step 3: Choose the input features (X) and target (y)
+    # X = selected financial features
+    # y = bankruptcy label
     X = df[SELECTED_FEATURES].copy()
     y = df[TARGET_COLUMN].astype(int)
 
+    # Step 4: Split the data into training and test sets
+    # Use stratify=y so class balance is preserved
     print("Splitting data...")
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -106,15 +114,23 @@ def main() -> None:
         random_state=42,
     )
 
+    # Step 5: Build the preprocessing + model pipeline
     print("Training model...")
     pipeline = build_pipeline()
+    # Step 6: Train the model on the training data
     pipeline.fit(X_train, y_train)
 
+    # Step 7: Evaluate the model on the test data
     print("Evaluating model...")
     metrics = evaluate(pipeline, X_test, y_test)
 
+    # Step 8: Create the artifacts folder if it does not exist
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Step 9: Save the trained model and outputs
+    # - model.joblib = trained model
+    # - metrics.json = evaluation results
+    # - selected_features.json = input features used by the model
     print("Saving model and artifacts...")
     joblib.dump(pipeline, MODEL_PATH)
 
@@ -124,6 +140,7 @@ def main() -> None:
     with open(FEATURES_PATH, "w", encoding="utf-8") as f:
         json.dump(SELECTED_FEATURES, f, indent=2)
 
+    # Step 10: Print confirmation
     print("\nTraining complete.")
     print(f"Model saved to: {MODEL_PATH}")
     print(f"Metrics saved to: {METRICS_PATH}")
